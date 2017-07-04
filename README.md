@@ -4,7 +4,10 @@ A simple Common Lisp client for Kubernetes.
 
 Very much a work in progress.
 
-Tested in [SBCL](https://www.sbcl.org).
+Tested in [SBCL](http://www.sbcl.org).
+# pre-requisites
+
+Requires that [quicklisp](https://www.quicklisp.org) is installed.
 
 # usage
 
