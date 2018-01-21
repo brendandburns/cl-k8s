@@ -116,39 +116,55 @@ value."
 (define-accessors cluster-name "cluster")
 (define-accessors current-context-name "current-context")
 
-(defun find-object-in-config-list (config list-key name)
-    (let ((objects (gethash list-key config)))
-        (find-object objects name)))
 
-(defun get-context (config context)
-    (find-object-in-config-list config "contexts" context))
+;;;; UTILITY FUNCTIONS
 
-(defun get-user (config user)
-    (find-object-in-config-list config "users" user))
 (declaim (inline find-by-name))
 (defun find-by-name (name sequence)
   (find name sequence :test #'equal :key #'name))
 
-(defun get-cluster (config cluster)
-    (find-object-in-config-list config "clusters" cluster))
+;; Resolve references to objects by name
 
-(defun current-context (config)
-    (let ((context (get-context config (gethash "current-context" config))))
-        (if (not (eq nil context))
-            (gethash "context" context)
-            nil)))
+(defun get-context (config context-name)
+  (find-by-name context-name (contexts config)))
 
-(defun current-user (config)
-    (let ((context (current-context config)))
-       (if context
-           (gethash "user" (get-user config (gethash "user" context)))
-           nil)))
+(defun get-user (config user-name)
+  (find-by-name user-name (users config)))
+
+(defun get-cluster (config cluster-name)
+  (find-by-name cluster-name (clusters config)))
+
+;; Get some current object by name.
+;; Since data typically looks like this:
+;;
+;; - context:
+;;     cluster: development
+;;     namespace: frontend
+;;     user: developer
+;;   name: dev-frontend
+;;
+;; ... the object we find when searching for "dev-frontend" is the
+;; exterior one, which holds the "name" key and a "context" key. But
+;; the object we want to get is the one under "context". That's why
+;; the functions below descend into the object being found by name.
+
+(defun get-current-context (config)
+  (context
+   (get-context config (current-context-name config))))
+
+(defun get-current-user (config)
+  (if-let ((context (get-current-context config)))
+    (user
+     (get-user config (user-name context)))))
 
 (defun current-cluster (config)
-    (let ((context (current-context config)))
-       (if context
-           (gethash "cluster" (get-cluster config (gethash "cluster" context)))
-           nil)))
+  (if-let ((context (get-current-context config)))
+    (cluster
+     (get-cluster config (cluster-name context)))))
+
+
+;;;; API CALLS
+
 
 (defun call-api (path
                  &key
@@ -192,9 +208,9 @@ value."
             :body body
             :content-type content-type
             :user-agent user-agent
-            :host (gethash "server" cluster)
-            :ca-file (gethash "certificate-authority" cluster)
+            :host (server cluster)
+            :ca-file (certificate-authority cluster)
             :insecure-tls-no-verify nil ; (get-insecure-tls-no-verify config)
-            :client-certificate (gethash "client-certificate" user)
-            :client-key (gethash "client-key" user))))
+            :client-certificate (client-certificate user)
+            :client-key (client-key user))))
 
