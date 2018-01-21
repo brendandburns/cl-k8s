@@ -1,42 +1,70 @@
 (in-package :cl-kubernetes)
 
-(defun read-file (path)
-  (with-open-file (stream path)
-    (let ((data (make-string (file-length stream))))
-      (read-sequence data stream)
-      data)))
+(defgeneric load-config (source)
+  (:documentation
+   "Load a YAML configuration file from a file or a list of files."))
 
-(defun load-config (path)
-    (cl-yy:yaml-simple-load (read-file path)))
+;; https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/#merging-kubeconfig-files
+(defun merge-configurations (&optional current new)
+  "Destructively merge two k8s configurations.
 
-; from http://cl-cookbook.sourceforge.net/os.html
-(defun getenv (name &optional default)
-    #+CMU
-    (let ((x (assoc name ext:*environment-list*
-                    :test #'string=)))
-      (if x (cdr x) default))
-    #-CMU
-    (or
-     #+Allegro (sys:getenv name)
-     #+CLISP (ext:getenv name)
-     #+ECL (si:getenv name)
-     #+SBCL (sb-unix::posix-getenv name)
-     #+LISPWORKS (lispworks:environment-variable name)
-     default))
+Adds in CURRENT all the entries (K,V) from NEW for which K is not
+currently associated to a value in CURRENT.
+
+When called with zero arguments, produce an empty HASH-TABLE (this is
+to satisfy REDUCE and easily build empty configurations)."
+  (cond
+    ((and current new)
+     (maphash (lambda (key new-value)
+                (multiple-value-bind (current-value exists-p)
+                    (gethash key current)
+                  (declare (ignore current-value))
+                  (unless exists-p
+                    (setf (gethash key current) new-value))))
+              new)
+     current)
+    (t (make-hash-table :test #'equal))))
+
+(defmethod load-config ((sequence sequence))
+  "Load and merge a sequence of configuration files."
+  ;; merge according to priority rules.
+  (reduce #'merge-configurations
+          ;; may error during deserializeing
+          (mapcar #'load-config
+                  ;; ignore non-existing files
+                  (delete nil (map 'list #'probe-file sequence)))))
+
+(defmethod load-config ((path pathname))
+  "Load a single configuration file."
+  (cl-yy:yaml-load-file path))
+
+(defmethod load-config :around ((path pathname))
+  "Add an IGNORE restart around LOAD-CONFIG for pathnames."
+  (restart-case (call-next-method)
+    (ignore ()
+      :report "Ignore this configuration file."
+      (return-from load-config (merge-configurations)))))
 
 (defun default-config ()
-    (let ((kubeconfig (getenv "KUBECONFIG" nil))
-          ; todo make this work on Windows?
-          (homekube (concatenate 'string (getenv "HOME") "/.kube/config")))
-        (if kubeconfig
-            (load-config kubeconfig)
-            (if (probe-file homekube)
-                (load-config homekube)
-                nil ; todo default to localhost:8080 
-            )
-        )
-    )
-)
+  "Load the default configuration in this environment.
+
+First, try to load configuration from one or more files listed in the
+KUBECONFIG environment variable, if that variable is set.
+
+Otherwise, try to read the configuration file from the home user
+directory (~/.kube/config).
+
+If this file does not exist, return a default configuration."
+  (let ((source (or (split (inter-directory-separator)
+                           (getenvp "KUBECONFIG"))
+                    (probe-file (merge-pathnames #P".kube/config"
+                                                 (user-homedir-pathname))))))
+    (if source
+        (load-config source)
+        (alist-hash-table
+         '(("apiVersion" "v1")
+           ("kind" "Config"))
+         :test #'equal))))
 
 (defun find-object (list name)
     (if list
