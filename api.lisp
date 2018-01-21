@@ -71,6 +71,55 @@ If this file does not exist, return a default configuration."
         (let ((obj (car list)))
             (if (string= name (gethash "name" obj)) obj (find-object (cdr list) name)))
         nil))
+(defmacro define-accessors (name &optional (key (string-downcase name)))
+  "Define both NAME and (SETF NAME) to access slot KEY in objects.
+
+KEY is a string that defaults to the NAME symbol (downcased), and
+represents the name of the key to access in an object to retrieve its
+value."
+  (check-type name symbol)
+  (check-type key string)
+  (let ((object (copy-symbol :object))
+        (value (copy-symbol :value)))
+    `(progn
+       ;; Inline accessors: they are not going to change at runtime.
+       (declaim (inline ,name (setf ,name)))
+
+       ;; Reader: allow NIL object.
+       (defun ,name (,object)
+         ,(format
+           nil
+           "Get the value associated with ~S in OBJECT, or NIL. ~%~%~
+
+            If OBJECT is NIL, returns NIL."
+           key)
+         (and ,object (gethash ,key ,object)))
+
+       ;; Writer .
+       (defun (setf ,name) (,value ,object)
+         ,(format
+           nil
+           "Set the value associated with ~S in OBJECT to VALUE."
+           key)
+         (setf (gethash ,key ,object) ,value)))))
+
+;; values
+(define-accessors name)
+(define-accessors server)
+(define-accessors client-key)
+(define-accessors client-certificate)
+(define-accessors certificate-authority)
+
+;; lists
+(define-accessors contexts)
+(define-accessors users)
+(define-accessors clusters)
+
+;; keys that are references, by names, to objects.
+(define-accessors context-name "context")
+(define-accessors user-name "user")
+(define-accessors cluster-name "cluster")
+(define-accessors current-context-name "current-context")
 
 (defun find-object-in-config-list (config list-key name)
     (let ((objects (gethash list-key config)))
