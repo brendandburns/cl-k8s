@@ -1,4 +1,4 @@
-(load "api.lisp")
+(in-package :cl-kubernetes-examples)
 
 (defun simple-example ()
     (call-api-with-config "/api/v1/namespaces/default" (default-config)))

@@ -1,9 +1,4 @@
-; TODO: make this more generic
-(load "~/quicklisp/setup.lisp")
-
-(ql:quickload :drakma)
-(ql:quickload :cl-json)
-(ql:quickload :cl-yaclyaml)
+(in-package :cl-kubernetes)
 
 (defun read-file (path)
   (with-open-file (stream path)
