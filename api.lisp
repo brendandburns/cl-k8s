@@ -168,49 +168,50 @@ value."
 
 (defun call-api (path
                  &key
-                 (method :GET)
-                 (host "http://localhost:8080")
-                 (body nil)
-                 (content-type "application/json")
-                 (user-agent "cl-k8s 0.0.1")
-                 (insecure-tls-no-verify nil)
-                 (ca-file nil)
-                 (client-certificate nil)
-                 (client-key nil))
-    (let ((uri (concatenate 'string host path)))
-        (print body)
-        (multiple-value-bind (stream code)
-            (drakma:http-request
-                uri
-                :want-stream t
-                :method method
-                :content (if body (json:encode-json-to-string body) nil)
-                :content-type content-type
-                :verify (if insecure-tls-no-verify nil :required)
-                :ca-file ca-file
-                :certificate client-certificate
-                :key client-key
-                :user-agent user-agent)
-            (values (json:decode-json stream) code))))
+                   (method :GET)
+                   (host "http://localhost:8080")
+                   (body nil)
+                   (content-type "application/json")
+                   (user-agent "cl-k8s 0.0.1")
+                   (insecure-tls-no-verify nil)
+                   (ca-file nil)
+                   (client-certificate nil)
+                   (client-key nil))
+  (let ((uri (concatenate 'string host path)))
+    (print body)
+    (multiple-value-bind (stream code)
+        (drakma:http-request
+         uri
+         :want-stream t
+         :method method
+         :content (if body (json:encode-json-to-string body) nil)
+         :content-type content-type
+         :verify (if insecure-tls-no-verify nil :required)
+         :ca-file ca-file
+         :certificate client-certificate
+         :key client-key
+         :user-agent user-agent)
+      (values (json:decode-json stream) code))))
 
 (defun call-api-with-config (path
                              config 
                              &key
-                             (method :GET)
-                             (body nil)
-                             (content-type "application/json")
-                             (user-agent "cl-k8s 0.0.1"))
-    (let ((cluster (current-cluster config))
-          (user (current-user config)))
-        (call-api
-            path
-            :method method
-            :body body
-            :content-type content-type
-            :user-agent user-agent
-            :host (server cluster)
-            :ca-file (certificate-authority cluster)
-            :insecure-tls-no-verify nil ; (get-insecure-tls-no-verify config)
-            :client-certificate (client-certificate user)
-            :client-key (client-key user))))
+                               (method :GET)
+                               (body nil)
+                               (content-type "application/json")
+                               (user-agent "cl-k8s 0.0.1"))
+  (let ((cluster (current-cluster config))
+        (user (current-user config)))
+    (call-api
+     path
+     :method method
+     :body body
+     :content-type content-type
+     :user-agent user-agent
+     :host (server cluster)
+     :ca-file (certificate-authority cluster)
+     :insecure-tls-no-verify nil ; (get-insecure-tls-no-verify config)
+     :client-certificate (client-certificate user)
+     :client-key (client-key user))))
+
 
