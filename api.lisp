@@ -66,11 +66,6 @@ If this file does not exist, return a default configuration."
            ("kind" "Config"))
          :test #'equal))))
 
-(defun find-object (list name)
-    (if list
-        (let ((obj (car list)))
-            (if (string= name (gethash "name" obj)) obj (find-object (cdr list) name)))
-        nil))
 (defmacro define-accessors (name &optional (key (string-downcase name)))
   "Define both NAME and (SETF NAME) to access slot KEY in objects.
 
@@ -130,6 +125,9 @@ value."
 
 (defun get-user (config user)
     (find-object-in-config-list config "users" user))
+(declaim (inline find-by-name))
+(defun find-by-name (name sequence)
+  (find name sequence :test #'equal :key #'name))
 
 (defun get-cluster (config cluster)
     (find-object-in-config-list config "clusters" cluster))
