@@ -4,15 +4,13 @@
     (call-api-with-config "/api/v1/namespaces/default" (default-config)))
 
 (defun create-namespace (name)
-    (let ((ns (list 
-                '(:KIND . "Namespace")
-                '(:API-VERSION . "v1")
-                (cons :METADATA (cons (cons :NAME name) '())))))
-        (call-api-with-config
-            "/api/v1/namespaces"
-            (default-config)
-            :method :POST
-            :body ns)))
+  (call-api-with-config
+   "/api/v1/namespaces"
+   (default-config)
+   :method :POST
+   :body `((:KIND . "Namespace")
+           (:API-VERSION . "v1")
+           (:METADATA (:NAME . ,name)))))
 
 (defun delete-namespace (name)
     (call-api-with-config
