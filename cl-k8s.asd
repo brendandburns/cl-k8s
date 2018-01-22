@@ -3,7 +3,8 @@
                "cl-json"
                "cl-yaclyaml"
                "cl-ppcre"
-               "alexandria")
+               "alexandria"
+               "uiop")
   :description "Kubernetes client"
   :author "brendanburns" ;; please adjust
   :version "0.0.1" ;; please adjust
