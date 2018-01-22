@@ -3,7 +3,8 @@
 (defpackage :cl-kubernetes
   (:nicknames #:k8s)
   (:use :cl)
-  (:import-from :ppcre #:split)
+  (:import-from :ppcre
+                #:split)
   (:import-from :alexandria
                 #:alist-hash-table
                 #:ensure-list
