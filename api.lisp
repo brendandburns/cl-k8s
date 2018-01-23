@@ -2,7 +2,7 @@
 
 (defgeneric load-config (source)
   (:documentation
-   "Load a YAML configuration file from a file or a list of files."))
+   "Load a YAML configuration from a file or a list of files."))
 
 ;; https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/#merging-kubeconfig-files
 (defun merge-configurations (&optional current new)
