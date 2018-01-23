@@ -56,8 +56,7 @@ Otherwise, try to read the configuration file from the home user
 directory (~/.kube/config).
 
 If this file does not exist, return a default configuration."
-  (let ((source (or (split (inter-directory-separator)
-                           (getenvp "KUBECONFIG"))
+  (let ((source (or (getenv-pathnames "KUBECONFIG")
                     (probe-file (merge-pathnames #P".kube/config"
                                                  (user-homedir-pathname))))))
     (if source

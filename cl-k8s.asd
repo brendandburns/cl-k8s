@@ -2,7 +2,6 @@
   :depends-on ("drakma"
                "cl-json"
                "cl-yaclyaml"
-               "cl-ppcre"
                "alexandria"
                "uiop")
   :description "Kubernetes client"
