@@ -29,7 +29,7 @@ to satisfy REDUCE and easily build empty configurations)."
   "Load and merge a sequence of configuration files."
   ;; merge according to priority rules.
   (reduce #'merge-configurations
-          ;; may error during deserializeing
+          ;; may error when deserializing
           (mapcar #'load-config
                   ;; ignore non-existing files
                   (delete nil (map 'list #'probe-file sequence)))))
@@ -98,25 +98,20 @@ value."
            key)
          (setf (gethash ,key ,object) ,value)))))
 
-;; values
+;; sorted alphabetically
+
+(define-accessors certificate-authority)
+(define-accessors client-certificate)
+(define-accessors client-key)
+(define-accessors cluster)
+(define-accessors clusters)
+(define-accessors context)
+(define-accessors contexts)
+(define-accessors current-context)
 (define-accessors name)
 (define-accessors server)
-(define-accessors client-key)
-(define-accessors client-certificate)
-(define-accessors certificate-authority)
-
-;; lists
-(define-accessors contexts)
-(define-accessors users)
-(define-accessors clusters)
-
-;; keys that returns either references, by names, to objects, or
-;; directly an object.
-
-(define-accessors context)
 (define-accessors user)
-(define-accessors cluster)
-(define-accessors current-context)
+(define-accessors users)
 
 ;;;; UTILITY FUNCTIONS
 
