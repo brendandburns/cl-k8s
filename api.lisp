@@ -110,12 +110,13 @@ value."
 (define-accessors users)
 (define-accessors clusters)
 
-;; keys that are references, by names, to objects.
-(define-accessors context-name "context")
-(define-accessors user-name "user")
-(define-accessors cluster-name "cluster")
-(define-accessors current-context-name "current-context")
+;; keys that returns either references, by names, to objects, or
+;; directly an object.
 
+(define-accessors context)
+(define-accessors user)
+(define-accessors cluster)
+(define-accessors current-context)
 
 ;;;; UTILITY FUNCTIONS
 
@@ -150,17 +151,17 @@ value."
 
 (defun get-current-context (config)
   (context
-   (get-context config (current-context-name config))))
+   (get-context config (current-context config))))
 
 (defun get-current-user (config)
   (if-let ((context (get-current-context config)))
     (user
-     (get-user config (user-name context)))))
+     (get-user config (user context)))))
 
 (defun current-cluster (config)
   (if-let ((context (get-current-context config)))
     (cluster
-     (get-cluster config (cluster-name context)))))
+     (get-cluster config (cluster context)))))
 
 
 ;;;; API CALLS
