@@ -43,7 +43,8 @@ to satisfy REDUCE and easily build empty configurations)."
   (restart-case (call-next-method)
     (ignore ()
       :report "Ignore this configuration file."
-      (return-from load-config (merge-configurations)))))
+      ;; return empty configuration
+      (merge-configurations))))
 
 (defun default-config ()
   "Load the default configuration in this environment.
