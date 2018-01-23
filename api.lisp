@@ -90,7 +90,7 @@ value."
            key)
          (and ,object (gethash ,key ,object)))
 
-       ;; Writer .
+       ;; Writer
        (defun (setf ,name) (,value ,object)
          ,(format
            nil
@@ -121,6 +121,7 @@ value."
 ;;;; UTILITY FUNCTIONS
 
 (declaim (inline find-by-name))
+
 (defun find-by-name (name sequence)
   (find name sequence :test #'equal :key #'name))
 
@@ -214,5 +215,4 @@ value."
      :insecure-tls-no-verify nil ; (get-insecure-tls-no-verify config)
      :client-certificate (client-certificate user)
      :client-key (client-key user))))
-
 
