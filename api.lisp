@@ -36,7 +36,7 @@ to satisfy REDUCE and easily build empty configurations)."
 
 (defmethod load-config ((path pathname))
   "Load a single configuration file."
-  (cl-yy:yaml-load-file path))
+  (cl-yy:yaml-load-file path :size-limit (* 1024 1024)))
 
 (defmethod load-config :around ((path pathname))
   "Add an IGNORE restart around LOAD-CONFIG for pathnames."
@@ -196,9 +196,10 @@ value."
                                (method :GET)
                                (body nil)
                                (content-type "application/json")
-                               (user-agent "cl-k8s 0.0.1"))
+                               (user-agent "cl-k8s 0.0.1")
+                               (insecure-tls-no-verify nil))
   (let ((cluster (current-cluster config))
-        (user (current-user config)))
+        (user (get-current-user config)))
     (call-api
      path
      :method method
@@ -207,7 +208,7 @@ value."
      :user-agent user-agent
      :host (server cluster)
      :ca-file (certificate-authority cluster)
-     :insecure-tls-no-verify nil ; (get-insecure-tls-no-verify config)
+     :insecure-tls-no-verify insecure-tls-no-verify ; (get-insecure-tls-no-verify config)
      :client-certificate (client-certificate user)
      :client-key (client-key user))))
 

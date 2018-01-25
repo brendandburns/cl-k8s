@@ -1,10 +1,16 @@
 (in-package :cl-kubernetes-examples)
 
+;; load quick-lisp
+(load "/home/bburns/quicklisp/setup.lisp")
+;; load the library
+(ql:quickload :cl-k8s)
+
+
 (defun simple-example ()
-  (call-api-with-config "/api/v1/namespaces/default" (default-config)))
+  (k8s:call-api-with-config "/api/v1/namespaces/default" (k8s:default-config)))
 
 (defun create-namespace (name)
-  (call-api-with-config
+  (k8s:call-api-with-config
    "/api/v1/namespaces"
    (default-config)
    :method :POST
@@ -13,13 +19,13 @@
            (:METADATA (:NAME . ,name)))))
 
 (defun delete-namespace (name)
-  (call-api-with-config
+  (k8s:call-api-with-config
    (concatenate 'string "/api/v1/namespaces/" name)
    (default-config)
    :method :DELETE))
 
 (defun create-pod ()
-  (call-api-with-config
+  (k8s:call-api-with-config
    "/api/v1/namespaces/default/pods"
    (default-config)
    :method :POST
@@ -35,7 +41,7 @@
             (:SERVICE-ACCOUNT-NAME . "default")))))
 
 (defun delete-pod (name &key (namespace "default"))
-  (call-api-with-config
+  (k8s:call-api-with-config
    (concatenate 'string "/api/v1/namespaces/" namespace "/pods/" name)
    (default-config)
    :method :DELETE))
